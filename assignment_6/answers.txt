@@ -1,0 +1,34 @@
+6-
+
+1. alter table trainhalts add constraint chk check (timein <= timeout); (check constraints are parsed but ignored by MySQL, hence entering invalid data given
+   in 3 doesn't give any error)
+   
+   delimiter //
+   create trigger chk before insert on trainhalts for each row begin if new.timein > new.timeout then rollback; end if; end//
+   delimiter ;
+   (then I tried this, but MySQL doesn't support explicit or implicit rollback or commit statements in stored functions or triggers)
+   
+   delimiter //
+   create trigger chk before insert on trainhalts for each row begin if new.timein > new.timeout then set new.timein = null; set new.timeout = null; end if; end//
+   delimiter ;
+   (works in the sense that the trigger gets activated on entering the second data of point 3 and tuple is entered in table with timein and timeout both null, but still there is a tuple being introduced)
+
+   delimiter //
+   create trigger chk before insert on trainhalts for each row begin if new.timein > new.timeout then signal sqlstate '12345' set message_text = 'invalid tuple entry, timein > timeout'; end if; end//
+   delimiter ;
+   (this works accurately in the sense that an error is raised displaying the error message given in the code for trigger and insertion of entry is rollbacked
+   )
+   
+2. alter table trainhalts add constraint rm foreign key (id) references train(id) on delete cascade;
+
+3. insert into trainhalts values ('S33', 0, 'CST', null, null);
+   insert into trainhalts values ('S33', 0, 'CST', '21.00', '20.55');
+   insert into train values ('K99', 'CST-KUR_LOCAL');
+   insert into trainhalts values ('K99', 0, 'KUR', '21.50', null);
+   insert into trainhalts values ('K99', 1, 'KUR', '21.50', null);
+   
+4. create table remotecentre (centreID varchar(5), college varchar(20), town varchar(10), state varchar(10) primary key (centreId));
+   create table person (ID varchar(5), name varchar(10), email varchar(15), primary key (ID));
+   create table programme (progID varchar(5), title varchar(10), fromdate date, todate date, primary key (progID));
+   create table coordinator (ID varchar(5) references person(ID) on delete cascade, progID varchar(5) references programme(progID) on delete cascade, centreID varchar(5) references remotecentre(centreID) on delete cascade, primary key (ID, progID, centreID));
+   create table participant (ID varchar(5) references person(ID) on delete cascade, progID varchar(5) references programme(progID) on delete cascade, centreID varchar(5) references remotecentre(centreID) on delete cascade, primary key (ID, progID, centreID));

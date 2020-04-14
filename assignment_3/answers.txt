@@ -1,0 +1,44 @@
+University database-
+
+1. select name from student where tot_cred > 100;
+
+2. select course_id, grade from takes inner join student on student.ID = takes.ID where name = 'Tanaka' and grade is not null;
+   select course_id, grade from takes inner join student on student.ID = takes.ID where name = 'Tanaka';
+
+3. insert into teaches values ('98345', 'CS-319', '2', 'Spring', 2010);
+   select distinct instructor.ID, name from instructor inner join (select ID from teaches where course_id like 'CS%') as list_id on instructor.ID = list_id.ID;
+   select distinct instructor.ID, name, dept_name from instructor inner join (select ID from teaches where course_id like 'CS%') as list_id on instructor.ID = list_id.ID;
+   
+4. select distinct s1.course_id from section as s1 inner join section as s2 on s1.course_id = s2.course_id where s1.semester = 'Fall' and s2.semester = 
+   'Spring';
+   
+5. select name from instructor where dept_name = 'Comp. Sci.';
+
+6. select teaches.course_id, course.title from teaches inner join course on teaches.course_id = course.course_id where teaches.ID in (select distinct ID from 
+   instructor where name = 'Srinivasan');
+   
+7. select distinct name from instructor inner join teaches on instructor.ID = teaches.ID where (semester, year) in (select distinct semester, year from
+   teaches where semester = 'Spring' and year = 2009);
+   
+Railway database-
+
+1. select stcode1, stcode2 from track where distance < 20;
+
+2. insert into trainhalts values ('N27', 0, 'TNA', NULL, '20.50');
+   insert into trainhalts values ('N27', 1, 'KYN', '21.50', NULL);
+   select distinct id from trainhalts where stcode = 'TNA' and timein is not null;
+   -- select distinct id from trainhalts where stcode = 'TNA' and seqno <> 0;
+   (the above query would work but seqno doesn't actually represent the sequence of visiting stations in terms of increasing time since for different seqnos, there are same entries in the trainhalt table)
+   
+3. select distinct name from train inner join trainhalts on train.id = trainhalts.id where stcode = 'CST' and timein is null;
+   -- select distinct name from train inner join trainhalts on train.id = trainhalts.id where stcode = 'CST' and seqno = 0;
+   (the above query would work but seqno doesn't actually represent the sequence of visiting stations in terms of increasing time since for different seqnos, there are same entries in the trainhalt table)
+   
+4. select distinct name from station inner join (select stcode from train inner join trainhalts on train.id = trainhalts.id where name = 'CST-KYN' order by
+   timein) as codes on station.stcode = codes.stcode;
+   select distinct name from station inner join (select stcode from train inner join trainhalts on train.id = trainhalts.id where name = 'CST-AMR_LOCAL' order by timein) as codes on station.stcode = codes.stcode;
+   (seqno doesn't actually represent the sequence of visiting stations in terms of increasing time since for different seqnos, there are same entries in the trainhalt table)
+   (the above queries won't work when the time crosses 00:00, but generating a query using seqno is also not the solution because of the above point)
+   
+5. select name from train inner join trainhalts on train.id = trainhalts.id where stcode = 'TNA' and seqno < 7;
+   (this query won't work since seqno doesn't represent stations visited with increasing time and there exist tuple having different seqnos but all other attribute values same)

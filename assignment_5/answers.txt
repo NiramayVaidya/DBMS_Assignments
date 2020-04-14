@@ -1,0 +1,42 @@
+5-
+
+1. create table teaching_assistant (ID varchar(5), course_id varchar(8), sec_id varchar(8), semester varchar(6), year numeric(4, 0), primary key (ID,
+   course_id, sec_id, semester, year), foreign key (ID) references student on delete cascade, foreign key (course_id, sec_id, semester, year) references course on delete cascade); (not working, cannot set foreign key constraint error)
+   create table teaching_assistant (ID varchar(5) references student(ID) on delete cascade, course_id varchar(8) references section(course_id, sec_id, semester, year) on delete cascade, sec_id varchar(8) references section(course_id, sec_id, semester, year) on delete cascade, semester varchar(6) references section(course_id, sec_id, semester, year) on delete cascade, year numeric(4,0) references section(course_id, sec_id, semester, year) on delete cascade);
+   
+2. alter table advisor drop primary key, add primary key (s_ID, i_ID);
+
+3. insert into advisor values ('00128', '10101');
+   insert into advisor values ('00128', '76543');
+   insert into advisor values ('00128', '76766');
+   select name from (advisor inner join student on s_ID = ID) group by s_ID having count(i_ID) > 3;
+   
+4. insert into instructor values ('99121', 'Ashok', 'Biology', 64500.00);
+   insert into advisor values ('12345', '99121');
+   insert into advisor values ('12345', '45565');
+   select student.name, json_arrayagg(instructor.name) as instructors from ((advisor inner join student on s_ID = ID) inner join instructor on i_ID = instructor.ID) group by student.name having json_search(instructors, 'one', "Srinivasan") is not null and json_search(instructors, 'one', "Ashok") is not null;
+   
+5. select distinct student.name from (advisor inner join student on s_ID = ID) inner join instructor on i_ID = instructor.ID where student.dept_name <>
+   instructor.dept_name;
+   
+6. insert into section values ('PHY-101', '2', 'Fall', 2007, 'Watson', '100', 'A');
+   insert into takes values ('98988', 'PHY-101', '2', 'Fall', 2007, 'A');
+   insert into teaches values ('98345', 'PHY-101', '2', 'Fall', 2007);
+   delete from section where year(current_date) - year > 10; (deleting this tuple from this relation didn't cause tuples referencing this tuple for 2007 year in teaches and takes relations to get deleted automatically because of the on delete cascade foreign key constraint put during the creation of schemas of these relations, as a result the foreign key constraints haven't been set at all between any of the relations, why though?)
+   delete from takes where year(current_date) - year > 10; (that's why, had to do this manually)
+   delete from teaches where year(current_date) - year > 10; (that's why, had to do this manually)
+   
+7. alter table prereq add constraint prq foreign key (prereq_id) references course(course_id) on delete cascade;
+
+   | CS-190    | CS-101    |    (entries in prereq table having prereq_id as CS-101)
+   | CS-315    | CS-101    |
+   | CS-319    | CS-101    |
+   | CS-347    | CS-101    |
+   
+   | CS-101    | Intro. to Computer Science | Comp. Sci. |       4 |    (entry in course for CS-101)
+   
+   delete from course where course_id = 'CS-101';
+   
+   the entries for prereq_id as CS-101 in prereq table also got deleted along with the entry for CS-101 in the course table
+   
+   (though from nowhere else, entries for CS-101 got removed since the other foreign key contraints have not been set while creating the schemas for the tables)

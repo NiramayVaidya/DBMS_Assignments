@@ -1,0 +1,51 @@
+4a-
+
+1. select count(ID) as count from instructor where ID not in (select distinct ID from teaches);
+
+2. select building, sum(capacity) from classroom group by building;
+
+3. select max(temp.count) from (select count(ID) as count from teaches group by course_id, sec_id) as temp;
+   select count(ID) as max from teaches group by course_id, sec_id order by max desc limit 1;
+   
+4. select instructor.dept_name, count(ID) as IDs from instructor inner join department on instructor.dept_name = department.dept_name group by
+   instructor.dept_name order by IDs desc;
+   select dept_name, count(ID) as IDs from instructor group by dept_name order by IDs desc;
+   
+5. insert into department values ('Mathematics', 'Packard', 40000.00);
+   select department.dept_name, count(ID) as IDs from department left join instructor on department.dept_name = instructor.dept_name group by department.dept_name order by IDs desc;
+   
+6. select name, credits from student inner join (select ID, sum(credits) as credits from takes inner join course on takes.course_id = course.course_id where 
+   grade is not null and grade <> 'F' group by ID) as temp where student.ID = temp.ID;
+   
+7. select count(student) from instructor inner join (select takes.ID as student, teaches.ID as teacher from takes inner join teaches on takes.course_id = 
+   teaches.course_id group by student, teacher) as temp on instructor.ID = teacher where name = 'Srinivasan';
+   
+8. select name, dept_name, instructor.salary from instructor inner join (select max(instructor.salary) as salary from instructor group by dept_name) as temp 
+   on temp.salary = instructor.salary order by salary asc;
+   
+9. select name, student.ID from student inner join (select ID from (select ID, count(ID) as count from takes inner join (select course_id, sec_id, semester, 
+   year from instructor inner join teaches on instructor.ID = teaches.ID where name = 'Srinivasan') as temp on (takes.course_id, takes.sec_id, takes.semester, takes.year) = (temp.course_id, temp.sec_id, temp.semester, temp.year) group by ID) as temp1 where count in (select count(name) from instructor inner join teaches on instructor.ID = teaches.ID where name = 'Srinivasan')) as temp2 on student.ID = temp2.ID;
+   
+10. select dept_name, sum(salary) as salaries from (select salary, department.dept_name from department left join instructor on department.dept_name = 
+    instructor.dept_name) as temp group by dept_name order by salaries asc;
+    update (select dept_name, sum(salary) as salaries from (select salary, department.dept_name from department left join instructor on department.dept_name = instructor.dept_name) as temp group by dept_name order by salaries asc) as temp1 set salaries = 0.00 where salaries = NULL; (not working, queried table not updatable) (apparently, in mysql, a table generated from a subquery cannot be updated)
+    
+11. select name from (select * from advisor inner join student on s_ID = ID) as temp1 inner join (select ID, count(distinct course_id) as count from teaches 
+    group by ID order by count desc limit 1) as temp2 on i_ID = temp2.ID;
+    
+4b-
+
+1. select course_id, title from course where course_id not in (select course_id from prereq);
+
+2. select distinct name from takes inner join student on takes.ID = student.ID where dept_name <> 'Biology';
+
+3. update instructor set salary = salary + (salary / 10);
+
+4. update student inner join (select ID, credits from takes inner join course on takes.course_id = course.course_id where title = 'Genetics') as temp on 
+   student.ID = temp.ID set tot_cred = tot_cred + temp.credits;
+   
+5. update instructor inner join (select i_ID, count(s_ID) as count from advisor group by i_ID order by count desc) as temp on ID = i_ID set salary = salary + 
+   50000.00 where count > 1;
+   
+6. update course left join (select course_id, count(ID) as count from takes group by course_id order by count desc) as temp on course.course_id = 
+   temp.course_id set credits = 2 where count < 5 or count is NULL;
