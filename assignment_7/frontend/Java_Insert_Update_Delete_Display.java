@@ -24,7 +24,7 @@ public class Java_Insert_Update_Delete_Display extends javax.swing.JFrame {
     {
         Connection con;
         try {
-            con = DriverManager.getConnection("jdbc:mysql://localhost/test_db?useSSL=false", "niramay","6nc6pt66n");
+            con = DriverManager.getConnection("jdbc:mysql://localhost/test_db?useSSL=false", "niramay","<password>");
             return con;
         } catch (Exception e) {
             e.printStackTrace();
